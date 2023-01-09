@@ -1,0 +1,17 @@
+Source: exfor
+Section: Productivity/Scientific/Physics
+Priority: optional
+Maintainer: Axiotis Michail
+Build-Depends: debhelper (>= 9), bzr, unzip
+
+Package: exfor-c4
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: EXFOR in C4 format
+ EXFOR in C4 format for usage
+
+Package: exfor-dat
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: EXFOR in ASCII format
+ EXFOR in ASCII format extracted from the C4
