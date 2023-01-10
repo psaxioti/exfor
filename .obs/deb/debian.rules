@@ -14,10 +14,10 @@ endif
 
 name = $(shell dpkg-parsechangelog | sed -n -e 's/^Source: //p')
 version = $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
-dashed_version $(echo $(version) | sed "s|\\.|\\-|g")
+dashed_version = $(shell echo $(version) | sed "s|\\.|\\-|g")
 inst_path = /usr/src/packages/BUILD/debian/exfor-c4/usr/bin
-inst_c4_path = /usr/src/packages/BUILD/debian/exfor-c4/opt/EXFOR/
-inst_dat_path = /usr/src/packages/BUILD/debian/exfor-c4/opt/EXFOR/
+inst_c4_path = /usr/src/packages/BUILD/debian/exfor-c4/opt/EXFOR
+inst_dat_path = /usr/src/packages/BUILD/debian/exfor-dat/opt/EXFOR
 sources_path = /usr/src/packages/SOURCES
 
 build-arch:
@@ -47,7 +47,12 @@ install-indep:
 
 	# Add here commands to install the package
 	# The DESTDIR Has To Be Exactly
-	dpkg-parsechangelog
+	install -Dm755 $(sources_path)/exfor_extract   $(inst_path)/exfor_extract
+	mkdir -p $(inst_c4_path)/C4all ; unzip -qq $(sources_path)/C4-*.zip -d $(inst_c4_path)/C4all
+	chmod 755 $(sources_path)/exfor_extract
+	mkdir -p $(inst_dat_path)/data ; $(sources_path)/exfor_extract --exfor_dir="$(inst_c4_path)/C4all" --data_dir="$(inst_dat_path)/data" --reaction=*\(\[ap\],g\)
+	$(sources_path)/exfor_extract --exfor_dir="$(inst_c4_path)/C4all" --data_dir="$(inst_dat_path)/data" --reaction=*\(g,\[ap\]\)
+	$(sources_path)/exfor_extract --exfor_dir="$(inst_c4_path)/C4all" --data_dir="$(inst_dat_path)/data" --reaction=*\(a,el\)
 	# --- end custom part for installing
 
 install-arch: build-arch
@@ -59,12 +64,6 @@ install-arch: build-arch
 
 	# Add here commands to install the package
 	# The DESTDIR Has To Be Exactly  /usr/src/packages/BUILD/debian/<nameOfPackage>
-	install -Dm755 $(sources_path)/exfor_extract   $(inst_c4_path)/exfor_extract
-	unzip -qq $(sources_path)/C4-%{dashed_version}.zip -d $(inst_c4_path)/C4all
-	chmod 775 $(sources_path)/exfor_extract
-	$(sources_path)/exfor_extract --exfor_dir="$(inst_c4_path)/C4all" --data_dir="$(inst_c4_path)/data" --reaction=*\(\[ap\],g\)
-	$(sources_path)/exfor_extract --exfor_dir="$(inst_c4_path)/C4all" --data_dir="$(inst_c4_path)/data" --reaction=*\(g,\[ap\]\)
-	$(sources_path)/exfor_extract --exfor_dir="$(inst_c4_path)/C4all" --data_dir="$(inst_c4_path)/data" --reaction=*\(a,el\)
 	# --- end custom part for installing
 
 # Build architecture-independent files here.
@@ -94,9 +93,13 @@ binary-indep: install-indep
 	dh_perl
 #	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
 	dh_shlibdeps
-	dh_gencontrol
+#	dh_gencontrol
+	dh_gencontrol -pexfor-c4 -- -v$(version)
+	dh_gencontrol -pexfor-dat -- -v$(version)
 	dh_md5sums
 	dh_builddeb -i
+#	dh_builddeb -pexfor-c4
+#	dh_builddeb -pexfor-dat
 	# We have nothing to do by default.
 
 # Build architecture-dependent files here.
@@ -126,9 +129,9 @@ binary-arch: build-arch install-arch
 	dh_perl
 #	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
 	dh_shlibdeps
-	dh_gencontrol
+#	dh_gencontrol
 	dh_md5sums
-	dh_builddeb -a
+#	dh_builddeb -a
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install
